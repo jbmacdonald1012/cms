@@ -1,8 +1,8 @@
 <div class="row">
   <div class="col-md-5">
-    <app-contacts-list></app-contacts-list>
+    <cms-contacts-list (selectedContactEvent)="onSelectedContact($event)"></cms-contacts-list>
   </div>
-  <div class="col-md-4">
-    <app-contacts-detail></app-contacts-detail>
+  <div class="col-md-7">
+    <cms-contacts-detail [contact]="selectedContact"></cms-contacts-detail>
   </div>
 </div>
