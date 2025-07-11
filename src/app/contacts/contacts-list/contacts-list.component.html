@@ -3,11 +3,15 @@
     <div class="panel panel-default">
       <div class="panel-heading clearfix">
         <h3 class="panel-title pull-left"> Contacts</h3>
-        <button class="btn btn-success pull-right">Create Contact</button>
+        <button class="btn btn-success pull-right" [routerLink]="['new']">New Contact</button>
       </div>
       <div class="panel-body">
         <div class="col-xs-12">
-          <cms-contact-item *ngFor="let contact of contacts" [contact]="contact" (click)="onSelected(contact)"></cms-contact-item>
+          <cms-contact-item
+            *ngFor="let contact of contacts"
+            [contact]="contact"
+            [routerLink]="[contact.id]">
+          </cms-contact-item>
         </div>
       </div>
     </div>

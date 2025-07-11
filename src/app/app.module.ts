@@ -4,7 +4,7 @@ import { AppComponent } from './app.component';
 import { HeaderComponent } from './header.component';
 import { ContactsComponent } from './contacts/contacts.component';
 import { ContactsListComponent } from './contacts/contacts-list/contacts-list.component';
-import { ContactsDetailComponent } from './contacts/contacts-detail/contacts-detail.component';
+import { ContactDetailComponent } from './contacts/contact-detail/contact-detail.component';
 import { ContactItemComponent } from './contacts/contact-item/contact-item.component';
 import { DocumentsComponent } from './documents/documents.component';
 import { DocumentListComponent } from './documents/document-list/document-list.component';
@@ -14,6 +14,9 @@ import { MessageItemComponent } from './messages/message-item/message-item.compo
 import { MessageEditComponent } from './messages/message-edit/message-edit.component';
 import { MessageListComponent } from './messages/message-list/message-list.component';
 import {DropdownDirective} from '../shared/dropdown.directive';
+import { AppRoutingModule } from './app-routing.module';
+import { DocumentEditComponent } from './documents/document-edit/document-edit.component';
+import { ContactEditComponent } from './contacts/contact-edit/contact-edit.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +24,7 @@ import {DropdownDirective} from '../shared/dropdown.directive';
     HeaderComponent,
     ContactsComponent,
     ContactsListComponent,
-    ContactsDetailComponent,
+    ContactDetailComponent,
     ContactItemComponent,
     DocumentsComponent,
     DocumentListComponent,
@@ -30,10 +33,13 @@ import {DropdownDirective} from '../shared/dropdown.directive';
     MessageItemComponent,
     MessageEditComponent,
     MessageListComponent,
-    DropdownDirective
+    DropdownDirective,
+    DocumentEditComponent,
+    ContactEditComponent
   ],
   imports: [
-    BrowserModule
+    BrowserModule,
+    AppRoutingModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

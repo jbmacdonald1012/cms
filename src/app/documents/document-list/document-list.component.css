@@ -1,16 +1,31 @@
-
-.center-panel {
-  margin-left: auto;
-  margin-right: auto;
-  width: 38rem;
+.list-group-item {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  background-color: #fdfdfd;
+  height: 100%;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
-.title {
-  font-size: 2.5rem;
-  font-weight: bold;
+.list-group-item.active {
+  background-color: #337ab7;
+  border-color: #337ab7;
+  color: white;
 }
 
-.pad-left-right{
-  padding-left:1rem;
-  padding-right:1rem;
+.list-group-item:hover {
+  cursor: pointer;
+  background-color: #eee;
+}
+
+.list-group-item.active:hover {
+  background-color: #286090;
+  border-color: #204d74;
 }
