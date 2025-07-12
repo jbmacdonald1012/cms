@@ -27,6 +27,7 @@ export class MessageService {
     const maxId = this.getMaxId();
     message.id = (maxId + 1).toString();
     this.messages.push(message);
+    console.log('Added message:', message);
     this.messageChangedEvent.next(this.messages.slice());
   }
 

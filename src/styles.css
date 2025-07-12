@@ -1,1 +1,34 @@
 /* You can add global styles to this file, and also import other style files */
+.drag-contact-wrapper {
+  margin-bottom: 10px;
+}
+
+.drag-item,
+.cdk-drag {
+  margin-bottom: 0.5rem;
+  cursor: grab;
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.drag-contact-wrapper .drag-item {
+  margin-bottom: 0;
+}
+
+.cdk-drag-preview {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: 1px dashed #ccc;
+  background-color: #fff;
+  opacity: 0.9;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+.snack-error {
+  background-color: #f44336 !important;
+  color: white;
+  font-weight: bold;
+}

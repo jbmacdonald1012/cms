@@ -1,45 +1,54 @@
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title">{{ editMode ? 'Edit Document' : 'New Document' }}</h3>
+    <h3 class="panel-title">{{ editMode ? 'Edit Document' : 'Add Document' }}</h3>
   </div>
   <div class="panel-body">
-    <form (ngSubmit)="onSubmit(f)" #f="ngForm">
-      <div class="form-group">
-        <label for="name">Name</label>
+    <form #f="ngForm" (ngSubmit)="onSubmit(f)" novalidate>
+      <div class="form-group" [ngClass]="{'has-error': name.invalid && name.touched}">
+        <label for="name">Document title</label>
         <input
           type="text"
           id="name"
+          class="form-control"
           name="name"
           required
           [(ngModel)]="document.name"
-          class="form-control"
-        />
+          #name="ngModel" />
       </div>
 
       <div class="form-group">
-        <label for="description">Description</label>
+        <label for="description">Document description</label>
         <input
           type="text"
           id="description"
-          name="description"
-          [(ngModel)]="document.description"
           class="form-control"
-        />
+          name="description"
+          [(ngModel)]="document.description" />
       </div>
 
-      <div class="form-group">
+      <div class="form-group" [ngClass]="{'has-error': url.invalid && url.touched}">
         <label for="url">Document URL</label>
         <input
-          type="text"
+          type="url"
           id="url"
-          name="url"
-          [(ngModel)]="document.url"
           class="form-control"
-        />
+          name="url"
+          required
+          [(ngModel)]="document.url"
+          #url="ngModel" />
       </div>
 
-      <button type="submit" class="btn btn-success">Save</button>
-      <button type="button" class="btn btn-default" (click)="onCancel()">Cancel</button>
+      <div
+        *ngIf="(name.invalid && name.touched) || (url.invalid && url.touched)"
+        class="alert alert-danger">
+        The Document title and Document URL are required.
+      </div>
+
+      <!-- Buttons -->
+      <div class="form-group text-right">
+        <button type="submit" class="btn btn-success" [disabled]="f.invalid">Save</button>
+        <button type="button" class="btn btn-primary" (click)="onCancel()">Cancel</button>
+      </div>
     </form>
   </div>
 </div>

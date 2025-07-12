@@ -25,16 +25,22 @@ export class DocumentEditComponent implements OnInit {
   ngOnInit() {
     this.route.params.subscribe((params: Params) => {
       const id = params['id'];
-      if (!id) return;
+
+      if (!id) {
+        this.editMode = false;
+        this.document = new Document('', '', '', '', null);
+        return;
+      }
 
       const doc = this.documentService.getDocument(id);
       if (!doc) return;
 
       this.originalDocument = doc;
       this.editMode = true;
-      this.document = JSON.parse(JSON.stringify(doc)); // deep clone
+      this.document = JSON.parse(JSON.stringify(doc));
     });
   }
+
 
   onSubmit(form: NgForm) {
     const value = form.value;
