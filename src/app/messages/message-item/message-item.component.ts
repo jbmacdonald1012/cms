@@ -6,7 +6,7 @@ import { ContactService } from '../../contacts/contact.service';
   selector: 'app-message-item',
   standalone: false,
   templateUrl: './message-item.component.html',
-  styleUrl: './message-item.component.css'
+  styleUrls: ['./message-item.component.css']
 })
 export class MessageItemComponent implements OnInit {
   @Input() message: Message

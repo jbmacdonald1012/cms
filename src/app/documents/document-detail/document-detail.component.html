@@ -1,21 +1,22 @@
-<div class="panel panel-default" xmlns="http://www.w3.org/1999/html">
+<div class="panel panel-default">
   <div class="panel-heading">
     <div class="row pad-all">
-      <h4 class="title margin-left-right">{{document?.name}}</h4>
-      <div class="row pull-right margin-left-right">
+      <h4 class="title margin-left-right pull-left">{{ document?.name }}</h4>
+      <div class="pull-right margin-left-right">
         <button class="btn btn-primary" type="button" (click)="onView()">View</button>
         <button class="btn btn-info" [routerLink]="['edit']">Edit</button>
         <button class="btn btn-danger" type="button" (click)="onDelete()">Delete</button>
       </div>
     </div>
   </div>
+
   <div class="panel-body">
     <div class="pad-left-right">
       <div class="row">
         <label>Description:</label>
         <span class="label-value">{{ document.description }}</span>
       </div>
-      <br>
+      <br />
       <div class="row">
         <label>URL:</label>
         <span class="label-value">{{ document.url }}</span>

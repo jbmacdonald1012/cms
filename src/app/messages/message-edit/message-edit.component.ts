@@ -6,7 +6,7 @@ import { MessageService } from '../message.service';
   selector: 'app-message-edit',
   standalone: false,
   templateUrl: './message-edit.component.html',
-  styleUrl: './message-edit.component.css'
+  styleUrls: ['./message-edit.component.css']
 })
 
 export class MessageEditComponent {

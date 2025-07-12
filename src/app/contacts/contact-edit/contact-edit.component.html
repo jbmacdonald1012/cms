@@ -1,1 +1,56 @@
-<p>contact-edit works!</p>
+<div class="row">
+  <div class="col-md-12">
+    <form (ngSubmit)="onSubmit(f)" #f="ngForm">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input
+          type="text"
+          id="name"
+          class="form-control"
+          name="name"
+          required
+          [(ngModel)]="contact.name"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          class="form-control"
+          name="email"
+          required
+          [(ngModel)]="contact.email"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone</label>
+        <input
+          type="text"
+          id="phone"
+          class="form-control"
+          name="phone"
+          required
+          [(ngModel)]="contact.phone"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="imageUrl">Image URL</label>
+        <input
+          type="text"
+          id="imageUrl"
+          class="form-control"
+          name="imageUrl"
+          [(ngModel)]="contact.imageUrl"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save</button>
+      <button type="button" class="btn btn-danger" (click)="onCancel()">Cancel</button>
+    </form>
+  </div>
+</div>
+

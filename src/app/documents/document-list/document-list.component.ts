@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Document } from '../document.model';
 import { DocumentService } from '../document.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'cms-document-list',
@@ -11,6 +12,7 @@ import { DocumentService } from '../document.service';
 
 export class DocumentListComponent implements OnInit {
   documents: Document[] = [];
+  subsrciption: Subscription;
 
   constructor(private documentService: DocumentService) { }
 
@@ -28,5 +30,13 @@ export class DocumentListComponent implements OnInit {
           this.documents = documents;
         }
       );
+    this.subsrciption = this.documentService.documentListChangedEvent
+      .subscribe((documents: Document[]) => {
+        this.documents = documents;
+      })
+  }
+
+  ngOnDestroy() {
+    this.subsrciption.unsubscribe();
   }
 }

@@ -1,12 +1,14 @@
-import { Injectable, EventEmitter } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Message } from './message.model';
 import { MOCKMESSAGES} from './MOCKMESSAGES';
+import { Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessageService {
-  messageChangedEvent = new EventEmitter<Message[]>();
+  messageChangedEvent = new Subject<Message[]>();
+
   private messages: Message[] = [];
 
   constructor() {
@@ -22,7 +24,16 @@ export class MessageService {
   }
 
   addMessage(message: Message) {
+    const maxId = this.getMaxId();
+    message.id = (maxId + 1).toString();
     this.messages.push(message);
-    this.messageChangedEvent.emit(this.messages.slice());
+    this.messageChangedEvent.next(this.messages.slice());
+  }
+
+  private getMaxId(): number {
+    return this.messages.reduce((max, msg) => {
+      const id = parseInt(msg.id);
+      return id > max ? id : max;
+    }, 0);
   }
 }

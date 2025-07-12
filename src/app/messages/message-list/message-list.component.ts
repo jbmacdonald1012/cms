@@ -6,7 +6,7 @@ import { MessageService } from '../message.service';
   selector: 'app-message-list',
   standalone: false,
   templateUrl: './message-list.component.html',
-  styleUrl: './message-list.component.css'
+  styleUrls: ['./message-list.component.css']
 })
 export class MessageListComponent implements OnInit {
   messages: Message[] = [];
