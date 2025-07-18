@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs';
 export class ContactsListComponent implements OnInit, OnDestroy {
   contacts: Contact[] = [];
   subscription: Subscription;
+  term: string = '';
 
   constructor(private contactService: ContactService) {}
 
@@ -26,6 +27,10 @@ export class ContactsListComponent implements OnInit, OnDestroy {
 
   trackById(index: number, contact: Contact): string {
     return contact.id;
+  }
+
+  search(term: string) {
+    this.term = term;
   }
 
   ngOnDestroy() {

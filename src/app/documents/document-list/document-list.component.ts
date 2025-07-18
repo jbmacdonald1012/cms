@@ -12,31 +12,34 @@ import { Subscription } from 'rxjs';
 
 export class DocumentListComponent implements OnInit {
   documents: Document[] = [];
-  subsrciption: Subscription;
+  subscription: Subscription;
 
   constructor(private documentService: DocumentService) { }
 
   ngOnInit() {
-    this.documents = this.documentService.getDocuments();
-    this.documentService.documentSelectedEvent
+    this.documentService.documentListChangedEvent
       .subscribe(
         (documents: Document[]) => {
           this.documents = documents;
         }
       );
-    this.documentService.documentChangedEvent
+    this.documentService.documentListChangedEvent
       .subscribe(
         (documents: Document[]) => {
           this.documents = documents;
         }
       );
-    this.subsrciption = this.documentService.documentListChangedEvent
+    this.subscription = this.documentService.documentListChangedEvent
       .subscribe((documents: Document[]) => {
         this.documents = documents;
       })
   }
 
+  trackById(index: number, doc: Document): string {
+    return doc.id;
+  }
+
   ngOnDestroy() {
-    this.subsrciption.unsubscribe();
+    this.subscription.unsubscribe();
   }
 }

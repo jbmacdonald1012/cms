@@ -8,7 +8,9 @@
 
   <div class="panel-body">
     <div class="row">
-      <div *ngFor="let document of documents" class="col-xs-12 col-sm-6 col-md-4">
+      <div
+        *ngFor="let document of documents; trackBy: trackById"
+        class="col-xs-12 col-sm-6 col-md-4">
         <a
           [routerLink]="['/documents', document.id]"
           routerLinkActive="active"
@@ -19,4 +21,3 @@
     </div>
   </div>
 </div>
-

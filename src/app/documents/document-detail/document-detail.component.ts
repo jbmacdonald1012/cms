@@ -31,9 +31,14 @@ export class DocumentDetailComponent implements OnInit {
   }
   onView() {
     if (this.document.url) {
-      this.nativeWindow.open(this.document.url);
+      const url = this.document.url.match(/^https?:\/\//)
+        ? this.document.url
+        : `https://${this.document.url}`;
+
+      this.nativeWindow.open(url, '_blank');
     }
   }
+
 
   onDelete() {
     this.documentService.deleteDocument(this.document);
