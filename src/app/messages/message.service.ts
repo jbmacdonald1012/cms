@@ -1,62 +1,61 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Subject } from 'rxjs';
-import { Message } from './message.model';
+// src/app/messages/message.service.ts
+          import { Injectable } from '@angular/core';
+          import { HttpClient } from '@angular/common/http';
+          import { Subject } from 'rxjs';
+          import { map } from 'rxjs/operators';
+          import { Message } from './message.model';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class MessageService {
-  messages: Message[] = [];
-  messageChangedEvent = new Subject<Message[]>();
-  private maxMessageId: number = 0;
-  private dbUrl = 'https://jmacd-cms-default-rtdb.firebaseio.com/messages.json';
+          @Injectable({
+            providedIn: 'root'
+          })
+          export class MessageService {
+            private messages: Message[] = [];
+            messageChangedEvent = new Subject<Message[]>();
+            private apiUrl = 'http://localhost:3000/api/messages';
 
-  constructor(private http: HttpClient) {
-    this.getMessages();
-  }
+            constructor(private http: HttpClient) {
+              this.fetchMessages();
+            }
 
-  getMessages(): Message[] {
-    this.http.get<Message[]>(this.dbUrl)
-      .subscribe({
-        next: (msgs) => {
-          this.messages = msgs || [];
-          this.maxMessageId = this.getMaxId();
-          this.messageChangedEvent.next(this.messages.slice());
-        },
-        error: (error) => console.error('Failed to load messages:', error)
-      });
-    return this.messages.slice();
-  }
+            fetchMessages(): void {
+              this.http
+                .get<{ messages: Message[] }>(this.apiUrl)
+                .pipe(
+                  map(res => {
+                    return res.messages.map(message => new Message(
+                      message.id || '',
+                      message.subject,
+                      message.msgText,
+                      message.sender,
+                      message._id
+                    ));
+                  })
+                )
+                .subscribe({
+                  next: msgs => {
+                    this.messages = msgs;
+                    this.messageChangedEvent.next([...this.messages]);
+                    console.log('Fetched messages:', this.messages);
+                  },
+                  error: err => console.error('Failed to load messages:', err)
+                });
+            }
 
-  getMessage(id: string): Message | null {
-    return this.messages.find(m => m.id === id) || null;
-  }
-
-  private getMaxId(): number {
-    return this.messages
-      .map(m => parseInt(m.id, 10) || 0)
-      .reduce((max, id) => id > max ? id : max, 0);
-  }
-
-
-  private storeMessages(): void {
-    const payload = JSON.stringify(this.messages);
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    this.http.put(this.dbUrl, payload, { headers })
-      .subscribe({
-        next: () => this.messageChangedEvent.next(this.messages.slice()),
-        error: (error) => console.error('Failed to save messages:', error)
-      });
-  }
-
-  addMessage(message: Message): void {
-    if (!message) {
-      return;
-    }
-    this.maxMessageId++;
-    message.id = this.maxMessageId.toString();
-    this.messages.push(message);
-    this.storeMessages();
-  }
-}
+            addMessage(message: Message): void {
+              this.http.post<{ msg: string, message: Message }>(this.apiUrl, message)
+                .subscribe({
+                  next: (response) => {
+                    const newMessage = new Message(
+                      response.message.id,
+                      response.message.subject,
+                      response.message.msgText,
+                      response.message.sender,
+                      response.message._id
+                    );
+                    this.messages.push(newMessage);
+                    this.messageChangedEvent.next([...this.messages]);
+                  },
+                  error: error => console.error('Failed to add message:', error)
+                });
+            }
+          }

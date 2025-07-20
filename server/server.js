@@ -5,11 +5,12 @@ var http = require('http');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const mongoose = require('mongoose');
 
-const fs = require('fs');
-const distPath = path.join(__dirname, '../dist/cms/index.html');
-console.log('Checking if file exists:', distPath);
-console.log('File exists:', fs.existsSync(distPath));
+// MongoDB connection
+mongoose.connect('mongodb://localhost:27017/cms')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // import the routing file to handle the default (index) route
 const index = require('./routes/app');
@@ -49,9 +50,9 @@ app.use(express.static(path.join(__dirname, '../dist/cms')));
 // Tell express to map the default route ('/') to the index route
 app.use('/', index);
 
-app.use('/documents', documents);
-app.use('/messages', messages);
-app.use('/contacts', contacts);
+app.use('/api/documents', documents);
+app.use('/api/messages', messages);
+app.use('/api/contacts', contacts);
 
 
 // Tell express to map all other non-defined routes back to the index page

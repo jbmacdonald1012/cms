@@ -18,7 +18,7 @@ export class MessageEditComponent {
     if (form.invalid) return;
 
     const { subject, msgText } = form.value;
-    const newMessage = new Message('', subject, msgText, this.currentSender);
+    const newMessage = new Message('', subject, msgText, this.currentSender,'');
     this.messageService.addMessage(newMessage);
     form.resetForm();
   }

@@ -1,5 +1,6 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { Message } from '../message.model';
+// src/app/messages/message-item/message-item.component.ts
+import { Component, Input, OnInit } from '@angular/core';
+import { Message, Contact } from '../message.model';
 import { ContactService } from '../../contacts/contact.service';
 
 @Component({
@@ -9,13 +10,20 @@ import { ContactService } from '../../contacts/contact.service';
   styleUrls: ['./message-item.component.css']
 })
 export class MessageItemComponent implements OnInit {
-  @Input() message: Message
-  messageSender: string;
+  @Input() message: Message;
+  messageSender: string = '';
 
   constructor(private contactService: ContactService) {}
 
   ngOnInit() {
-    const contact = this.contactService.getContact(this.message.sender);
-    this.messageSender = contact?.name || this.message.sender;
+    // Type guard to check if sender is a Contact object
+    if (this.message.sender && typeof this.message.sender === 'object' && 'name' in this.message.sender) {
+      this.messageSender = this.message.sender.name;
+    } else {
+      // If sender is a string (id), fetch the contact
+      const contact = this.contactService.getContact(this.message.sender as string);
+      this.messageSender = contact?.name || 'Unknown Sender';
+    }
+    console.log('Message sender:', this.messageSender);
   }
 }

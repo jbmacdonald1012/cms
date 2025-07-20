@@ -1,45 +1,36 @@
-import { Component, OnInit } from '@angular/core';
-import { Document } from '../document.model';
-import { DocumentService } from '../document.service';
-import { Subscription } from 'rxjs';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+        import { Document } from '../document.model';
+        import { DocumentService } from '../document.service';
+        import { Subscription } from 'rxjs';
 
-@Component({
-  selector: 'cms-document-list',
-  templateUrl: './document-list.component.html',
-  styleUrls: ['./document-list.component.css'],
-  standalone: false
-})
+        @Component({
+          selector: 'cms-document-list',
+          templateUrl: './document-list.component.html',
+          styleUrls: ['./document-list.component.css'],
+          standalone: false
+        })
+        export class DocumentListComponent implements OnInit, OnDestroy {
+          documents: Document[] = [];
+          subscription: Subscription;
 
-export class DocumentListComponent implements OnInit {
-  documents: Document[] = [];
-  subscription: Subscription;
+          constructor(private documentService: DocumentService) { }
 
-  constructor(private documentService: DocumentService) { }
+          ngOnInit() {
+            this.documentService.getDocuments();
 
-  ngOnInit() {
-    this.documentService.documentListChangedEvent
-      .subscribe(
-        (documents: Document[]) => {
-          this.documents = documents;
+            this.subscription = this.documentService.documentListChangedEvent
+              .subscribe((documents: Document[]) => {
+                this.documents = documents;
+              });
+          }
+
+          trackById(index: number, doc: Document): string {
+            return doc.id;
+          }
+
+          ngOnDestroy() {
+            if (this.subscription) {
+              this.subscription.unsubscribe();
+            }
+          }
         }
-      );
-    this.documentService.documentListChangedEvent
-      .subscribe(
-        (documents: Document[]) => {
-          this.documents = documents;
-        }
-      );
-    this.subscription = this.documentService.documentListChangedEvent
-      .subscribe((documents: Document[]) => {
-        this.documents = documents;
-      })
-  }
-
-  trackById(index: number, doc: Document): string {
-    return doc.id;
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
-  }
-}

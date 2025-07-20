@@ -1,87 +1,108 @@
-import { Injectable,EventEmitter } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { map, Subject } from 'rxjs';
 import { Document } from './document.model';
-import { Subject } from 'rxjs';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
-  documentSelectedEvent = new EventEmitter<Document>();
-  documentListChangedEvent = new Subject<Document[]>();
   private documents: Document[] = [];
-  maxDocumentId: number;
-
-  private dbUrl = 'https://jmacd-cms-default-rtdb.firebaseio.com/documents.json'
+  documentListChangedEvent = new Subject<Document[]>();
+  private maxDocumentId = 0;
+  private apiUrl = 'http://localhost:3000/api/documents';
 
   constructor(private http: HttpClient) {
-    this.maxDocumentId = 0;
-    this.getDocuments();
+    this.fetchDocuments();
   }
-  getDocuments(){
-    this.http.get<Document[]>(this.dbUrl)
+
+  fetchDocuments(): void {
+    this.http
+      .get<{ documents: Document[] }>(this.apiUrl)
+      .pipe(map(res => res.documents))
       .subscribe({
-        next: (documents) => {
-          this.documents = documents || [];
+        next: docs => {
+          this.documents = docs || [];
           this.maxDocumentId = this.getMaxId();
           this.documents.sort((a, b) => a.name.localeCompare(b.name));
           this.documentListChangedEvent.next(this.documents.slice());
         },
-      error: (error) => console.error('Failed to load doucuments:', error)
+        error: err => console.error('Failed to load documents:', err)
       });
   }
 
-  private storeDocuments() {
-    const payload = JSON.stringify(this.documents);
-    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    this.http.put(this.dbUrl,payload, { headers })
-      .subscribe(() => {
-        this.documentListChangedEvent.next(this.documents.slice());
+  getDocuments(): void {
+    this.http
+      .get<{ documents: Document[] }>(this.apiUrl)
+      .pipe(map(res => res.documents))
+      .subscribe({
+        next: (documents) => {
+          this.documents = documents;
+          this.maxDocumentId = this.getMaxId();
+          this.documents.sort((a, b) => a.name.localeCompare(b.name));
+          this.documentListChangedEvent.next([...this.documents]);
+        },
+        error: err => console.error('Failed to load documents:', err)
       });
   }
 
   getDocument(id: string): Document | null {
-    return this.documents.find(document => document.id === id) || null;
+    return this.documents.find(d => d.id === id) || null;
   }
 
-  getMaxId(): number {
-    let maxId = 0;
-    for (let document of this.documents) {
-      const currentId = parseInt(document.id);
-      if (currentId > maxId) {
-        maxId = currentId;
-      }
-    }
-    return maxId;
+  private getMaxId(): number {
+    return this.documents
+      .map(d => parseInt(d.id, 10) || 0)
+      .reduce((max, id) => Math.max(max, id), 0);
   }
 
-  addDocument(newDocument: Document) {
-    if (!newDocument) return;
+  addDocument(newDoc: Document): void {
+    if (!newDoc) return;
 
-    this.maxDocumentId++;
-    newDocument.id = this.maxDocumentId.toString();
-    this.documents.push(newDocument);
-    this.storeDocuments();
+    const tempId = (this.maxDocumentId + 1).toString();
+    newDoc.id = tempId;
+
+    this.http
+      .post<{ document: Document }>(this.apiUrl, newDoc)
+      .subscribe({
+        next: res => {
+          this.documents.push(res.document);
+          this.maxDocumentId = Math.max(this.maxDocumentId, parseInt(res.document.id, 10));
+          this.documentListChangedEvent.next(this.documents.slice());
+        },
+        error: err => console.error('Failed to add document:', err)
+      });
   }
 
-  updateDocument(original: Document, updated: Document){
-    if (!original || !updated) return;
-
-    const pos = this.documents.indexOf(original);
-    if (pos < 0) return;
-
-    updated.id = original.id;
-    this.documents[pos] = updated;
-    this.storeDocuments();
+  updateDocument(orig: Document, updated: Document): void {
+    if (!orig || !updated) return;
+    const url = `${this.apiUrl}/${orig.id}`;
+    this.http
+      .put(url, updated)
+      .subscribe({
+        next: () => {
+          const idx = this.documents.findIndex(d => d.id === orig.id);
+          if (idx >= 0) {
+            updated.id = orig.id;
+            this.documents[idx] = updated;
+            this.documentListChangedEvent.next(this.documents.slice());
+          }
+        },
+        error: err => console.error(`Failed to update document ${orig.id}:`, err)
+      });
   }
 
-  deleteDocument(document: Document) {
-    if (!document) return;
-
-    const pos = this.documents.indexOf(document);
-    if (pos < 0) return;
-
-    this.documents.splice(pos, 1);
-    this.storeDocuments();
+  deleteDocument(doc: Document): void {
+    if (!doc) return;
+    const url = `${this.apiUrl}/${doc.id}`;
+    this.http
+      .delete(url)
+      .subscribe({
+        next: () => {
+          this.documents = this.documents.filter(d => d.id !== doc.id);
+          this.documentListChangedEvent.next(this.documents.slice());
+        },
+        error: err => console.error(`Failed to delete document ${doc.id}:`, err)
+      });
   }
 }

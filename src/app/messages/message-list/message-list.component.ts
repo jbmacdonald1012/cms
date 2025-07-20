@@ -16,7 +16,8 @@ export class MessageListComponent implements OnInit, OnDestroy {
   constructor(private messageService: MessageService) {}
 
   ngOnInit() {
-    this.messages = this.messageService.getMessages();
+    this.messageService.fetchMessages();
+
     this.subscription = this.messageService.messageChangedEvent.subscribe(
       (messages: Message[]) => {
         console.log('Message list updated:', messages);
