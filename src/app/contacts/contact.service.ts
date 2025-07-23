@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Subject } from 'rxjs';
+import { map, tap, Subject, Observable } from 'rxjs';
 import { Contact } from './contact.model';
 
 @Injectable({
@@ -10,7 +10,7 @@ export class ContactService {
   private contacts: Contact[] = [];
   contactListChangedEvent = new Subject<Contact[]>();
   private maxContactId = 0;
-  private apiUrl = 'http://localhost:3000/api/contacts';
+  private apiUrl = '/api/contacts';
 
   constructor(private http: HttpClient) {
     this.fetchContacts();
@@ -21,28 +21,17 @@ export class ContactService {
       .get<{ contacts: Contact[] }>(this.apiUrl)
       .pipe(map(res => res.contacts))
       .subscribe({
-        next: contacts => {
-          this.contacts = contacts || [];
+        next: list => {
+          this.contacts = list || [];
           this.maxContactId = this.getMaxId();
-          this.contacts.sort((a, b) => a.name.localeCompare(b.name));
           this.contactListChangedEvent.next(this.contacts.slice());
         },
         error: err => console.error('Failed to load contacts:', err)
       });
   }
 
-  getContacts() {
-    this.http.get<{message: string, contacts: Contact[]}>(this.contactsUrl)
-      .subscribe({
-        next: (response) => {
-          this.contacts = response.contacts;
-          this.contactListChangedEvent.next([...this.contacts]);
-        },
-        error: (error) => {
-          console.error('Error fetching contacts:', error);
-        }
-      });
-    return [...this.contacts];
+  getContacts(): Contact[] {
+    return this.contacts.slice();
   }
 
   getContact(id: string): Contact | null {
@@ -55,47 +44,29 @@ export class ContactService {
       .reduce((max, id) => Math.max(max, id), 0);
   }
 
-  addContact(contact: Contact) {
-    return this.http.post<{message: string, contacts: Contact[]}>(this.contactsUrl, contact)
+  /** Return an Observable so callers can wait for the new contact */
+  addContact(newContact: Contact): Observable<Contact> {
+    if (!newContact) throw new Error('No contact to add');
+    newContact.id = (this.maxContactId + 1).toString();
+
+    return this.http
+      .post<{ message: string; contacts: Contact[] }>(this.apiUrl, newContact)
       .pipe(
-        tap(response => {
-          this.contacts.push(...response.contacts);
-          this.contactListChangedEvent.next([...this.contacts]);
+        map(res => res.contacts[0]),  // grab the only element
+        tap(contact => {
+          this.contacts.push(contact);
+          this.contactListChangedEvent.next(this.contacts.slice());
         })
       );
   }
 
-  updateContact(orig: Contact, updated: Contact): void {
-    if (!orig || !updated) return;
-
-    const url = `${this.apiUrl}/${orig.id}`;
-    this.http
-      .put(url, updated)
-      .subscribe({
-        next: () => {
-          const idx = this.contacts.findIndex(c => c.id === orig.id);
-          if (idx >= 0) {
-            updated.id = orig.id;
-            this.contacts[idx] = updated;
-            this.contactListChangedEvent.next(this.contacts.slice());
-          }
-        },
-        error: err => console.error(`Failed to update contact ${orig.id}:`, err)
-      });
-  }
-
-  deleteContact(contact: Contact): void {
-    if (!contact) return;
-
+  deleteContact(contact: Contact): Observable<void> {
     const url = `${this.apiUrl}/${contact.id}`;
-    this.http
-      .delete(url)
-      .subscribe({
-        next: () => {
-          this.contacts = this.contacts.filter(c => c.id !== contact.id);
-          this.contactListChangedEvent.next(this.contacts.slice());
-        },
-        error: err => console.error(`Failed to delete contact ${contact.id}:`, err)
-      });
+    return this.http.delete<void>(url).pipe(
+      tap(() => {
+        this.contacts = this.contacts.filter(c => c.id !== contact.id);
+        this.contactListChangedEvent.next(this.contacts.slice());
+      })
+    );
   }
 }

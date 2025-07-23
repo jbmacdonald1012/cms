@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, Params } from '@angular/router';
-import { NgForm } from '@angular/forms';
-import { Document } from '../document.model';
-import { DocumentService } from '../document.service';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute, Params, Router} from '@angular/router';
+import {NgForm} from '@angular/forms';
+import {Document} from '../document.model';
+import {DocumentService} from '../document.service';
 
 
 @Component({
@@ -41,20 +41,23 @@ export class DocumentEditComponent implements OnInit {
     });
   }
 
-
   onSubmit(form: NgForm) {
     const value = form.value;
-    const newDocument = new Document(
-      '', value.name, value.description, value.url, null
-    );
+    const newDocument = new Document('', value.name, value.description, value.url, null);
 
     if (this.editMode) {
       this.documentService.updateDocument(this.originalDocument, newDocument);
+      this.router.navigate(['/documents']);
     } else {
-      this.documentService.addDocument(newDocument);
+      this.documentService.addDocument(newDocument)
+        .subscribe({
+          next: () => {
+            // navigate *after* the server‐confirmed creation
+            this.router.navigate(['/documents']);
+          },
+          error: err => console.error('Save failed:', err)
+        });
     }
-
-    this.router.navigate(['/documents']);
   }
 
   onCancel() {

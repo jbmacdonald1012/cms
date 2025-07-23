@@ -66,7 +66,8 @@ router.post('/', async (req, res) => {
       .exec();
 
     console.log('Saved message:', populatedMessage);
-    res.status(201).json(populatedMessage);
+    res.status(201).json({
+      message: populatedMessage});
   } catch (error) {
     console.error('Error details:', error);
     res.status(500).json({ message: 'Error saving message', error: error.message });

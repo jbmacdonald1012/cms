@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Subject } from 'rxjs';
+import {map, BehaviorSubject, Observable} from 'rxjs';
 import { Document } from './document.model';
+import {tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
   private documents: Document[] = [];
-  documentListChangedEvent = new Subject<Document[]>();
+  documentListChangedEvent = new BehaviorSubject<Document[]>([]);
   private maxDocumentId = 0;
-  private apiUrl = 'http://localhost:3000/api/documents';
+  private apiUrl = '/api/documents';
 
   constructor(private http: HttpClient) {
     this.fetchDocuments();
@@ -56,22 +57,22 @@ export class DocumentService {
       .reduce((max, id) => Math.max(max, id), 0);
   }
 
-  addDocument(newDoc: Document): void {
-    if (!newDoc) return;
+  addDocument(newDoc: Document): Observable<Document> {
+    if (!newDoc) throw new Error('No document to add.');
 
-    const tempId = (this.maxDocumentId + 1).toString();
-    newDoc.id = tempId;
+    // temporary client-side ID
+    newDoc.id = (this.maxDocumentId + 1).toString();
 
-    this.http
-      .post<{ document: Document }>(this.apiUrl, newDoc)
-      .subscribe({
-        next: res => {
-          this.documents.push(res.document);
-          this.maxDocumentId = Math.max(this.maxDocumentId, parseInt(res.document.id, 10));
+    return this.http
+      .post<{  message: string; documents: Document[] }>(this.apiUrl, newDoc)
+      .pipe(
+        map(res => res.documents[0]),    // pull out the first (and only) element
+        tap(doc => {
+          this.documents.push(doc);
+          this.maxDocumentId = Math.max(this.maxDocumentId, +doc.id);
           this.documentListChangedEvent.next(this.documents.slice());
-        },
-        error: err => console.error('Failed to add document:', err)
-      });
+        })
+      );
   }
 
   updateDocument(orig: Document, updated: Document): void {

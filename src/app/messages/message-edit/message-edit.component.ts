@@ -1,7 +1,6 @@
-import { Component } from '@angular/core';
-import { Message } from '../message.model';
-import { MessageService } from '../message.service';
-import { NgForm } from '@angular/forms';
+import {Component, ElementRef, ViewChild} from '@angular/core';
+import {Message} from '../message.model';
+import {MessageService} from '../message.service';
 
 @Component({
   selector: 'app-message-edit',
@@ -10,20 +9,30 @@ import { NgForm } from '@angular/forms';
   styleUrls: ['./message-edit.component.css']
 })
 export class MessageEditComponent {
-  currentSender: string = 'Jason Macdonald';
+  @ViewChild('subject') subjectInputRef!: ElementRef;
+  @ViewChild('msgText') msgTextInputRef!: ElementRef;
+  currentSender = 'Jason Macdonald';
 
   constructor(private messageService: MessageService) {}
 
-  onSendMessage(form: NgForm) {
-    if (form.invalid) return;
+  onSendMessage() {
+    const message = new Message(
+      '',
+      this.subjectInputRef.nativeElement.value,
+      this.msgTextInputRef.nativeElement.value,
+      this.currentSender
+    );
 
-    const { subject, msgText } = form.value;
-    const newMessage = new Message('', subject, msgText, this.currentSender,'');
-    this.messageService.addMessage(newMessage);
-    form.resetForm();
+    // Subscribe and only clear *after* service has added and emitted
+    this.messageService.addMessage(message)
+      .subscribe({
+        next: () => this.onClear(),
+        error: err => console.error('Add message failed:', err)
+      });
   }
 
-  onClear(form: NgForm) {
-    form.resetForm();
+  onClear() {
+    this.subjectInputRef.nativeElement.value = '';
+    this.msgTextInputRef.nativeElement.value = '';
   }
 }

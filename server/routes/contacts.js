@@ -12,33 +12,36 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    // Get next sequence value
-    const sequence = await Sequence.findOne();
-    const newId = sequence.maxContactId + 1;
+    const updatedSeq = await Sequence.findOneAndUpdate(
+      {},                        // filter: your single sequence doc
+      { $inc: { maxContactId: 1 } },
+      { new: true, upsert: true } // return the UPDATED doc
+    );
 
-    // Update sequence
-    await Sequence.updateOne({}, { $set: { maxContactId: newId } });
+    // Grab the new value
+    const newId = updatedSeq.maxContactId;
 
+    // Now safe to build the Contact
     const contact = new Contact({
-      id: newId.toString(),
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
-      imageUrl: req.body.imageUrl,
-      group: req.body.group || []
+      id:        newId.toString(),
+      name:      req.body.name,
+      email:     req.body.email,
+      phone:     req.body.phone,
+      imageUrl:  req.body.imageUrl,
+      group:     req.body.group || []
     });
 
-    const savedContact = await contact.save();
-    const populatedContact = await Contact.findById(savedContact._id)
-      .populate('group')
-      .exec();
+    const savedContact    = await contact.save();
+    const populatedContact = await Contact.findById(savedContact._id).populate('group');
 
     res.status(201).json({
       message: 'Contact created successfully',
       contacts: [populatedContact]
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating contact', error: error.message });
+    })
+  }
+  catch(err) {
+    console.error('POST /contacts error', err);
+    res.status(500).json({ message: 'Error creating contact', error: err.message });
   }
 });
 

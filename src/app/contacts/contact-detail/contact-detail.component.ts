@@ -30,8 +30,12 @@ export class ContactDetailComponent implements OnInit {
       }
     );
   }
-  onDelete() {
-    this.contactService.deleteContact(this.contact);
-    this.router.navigateByUrl('/contacts');
+  onDelete(): void {
+    if (!this.contact) return;
+    this.contactService.deleteContact(this.contact)
+      .subscribe({
+        next: () => this.router.navigate(['/contacts']),
+        error: err => console.error('Delete failed:', err)
+      });
   }
 }

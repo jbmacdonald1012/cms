@@ -1,61 +1,63 @@
-// src/app/messages/message.service.ts
-          import { Injectable } from '@angular/core';
-          import { HttpClient } from '@angular/common/http';
-          import { Subject } from 'rxjs';
-          import { map } from 'rxjs/operators';
-          import { Message } from './message.model';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { map, tap, Subject, Observable } from 'rxjs';
+import { Message } from './message.model';
 
-          @Injectable({
-            providedIn: 'root'
-          })
-          export class MessageService {
-            private messages: Message[] = [];
-            messageChangedEvent = new Subject<Message[]>();
-            private apiUrl = 'http://localhost:3000/api/messages';
+@Injectable({
+  providedIn: 'root'
+})
+export class MessageService {
+  private messages: Message[] = [];
+  messageChangedEvent = new Subject<Message[]>();
+  private maxMessageId = 0;
+  private apiUrl = '/api/messages';
 
-            constructor(private http: HttpClient) {
-              this.fetchMessages();
-            }
+  constructor(private http: HttpClient) {
+    this.fetchMessages();
+  }
 
-            fetchMessages(): void {
-              this.http
-                .get<{ messages: Message[] }>(this.apiUrl)
-                .pipe(
-                  map(res => {
-                    return res.messages.map(message => new Message(
-                      message.id || '',
-                      message.subject,
-                      message.msgText,
-                      message.sender,
-                      message._id
-                    ));
-                  })
-                )
-                .subscribe({
-                  next: msgs => {
-                    this.messages = msgs;
-                    this.messageChangedEvent.next([...this.messages]);
-                    console.log('Fetched messages:', this.messages);
-                  },
-                  error: err => console.error('Failed to load messages:', err)
-                });
-            }
+  fetchMessages(): void {
+    this.http
+      .get<{ messages: Message[] }>(this.apiUrl)
+      .pipe(map(res => res.messages))
+      .subscribe({
+        next: msgs => {
+          this.messages = msgs || [];
+          this.maxMessageId = this.getMaxId();
+          this.messageChangedEvent.next(this.messages.slice());
+        },
+        error: err => console.error('Failed to load messages:', err)
+      });
+  }
 
-            addMessage(message: Message): void {
-              this.http.post<{ msg: string, message: Message }>(this.apiUrl, message)
-                .subscribe({
-                  next: (response) => {
-                    const newMessage = new Message(
-                      response.message.id,
-                      response.message.subject,
-                      response.message.msgText,
-                      response.message.sender,
-                      response.message._id
-                    );
-                    this.messages.push(newMessage);
-                    this.messageChangedEvent.next([...this.messages]);
-                  },
-                  error: error => console.error('Failed to add message:', error)
-                });
-            }
-          }
+  getMessages(): Message[] {
+    return this.messages.slice();
+  }
+
+  getMessage(id: string): Message | null {
+    return this.messages.find(m => m.id === id) || null;
+  }
+
+  private getMaxId(): number {
+    return this.messages
+      .map(m => parseInt(m.id, 10) || 0)
+      .reduce((max, id) => Math.max(max, id), 0);
+  }
+
+  /** Return an Observable so callers can wait for the new message */
+  addMessage(newMsg: Message): Observable<Message> {
+    if (!newMsg) throw new Error('No message to add');
+    newMsg.id = (this.maxMessageId + 1).toString();
+
+    return this.http
+      .post<{ message: Message }>(this.apiUrl, newMsg)
+      .pipe(
+        map(res => res.message),
+        tap(saved => {
+          this.messages.push(saved);
+          this.maxMessageId = Math.max(this.maxMessageId, +saved.id);
+          this.messageChangedEvent.next(this.messages.slice());
+        })
+      );
+  }
+}

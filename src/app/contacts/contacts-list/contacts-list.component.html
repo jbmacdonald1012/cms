@@ -35,7 +35,7 @@
           [cdkDropListConnectedTo]="['groupList']">
 
           <cms-contact-item
-            *ngFor="let contact of contacts | contactsFilter:term; trackBy: trackById"
+            *ngFor="let contact of contacts; trackBy: trackById"
             [contact]="contact"
             cdkDrag
             [cdkDragData]="contact">
